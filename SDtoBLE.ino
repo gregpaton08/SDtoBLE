@@ -18,6 +18,8 @@ void setup() {
   pinMode(SD_SS, OUTPUT);
   digitalWrite(SD_SS, HIGH);
   
+  SPI.begin();
+  
   // Set up Serial Peripheral Interface for BLE
   /*SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(LSBFIRST);
@@ -44,13 +46,18 @@ void setup() {
     
   digitalWrite(SD_SS, HIGH);*/
   
-  ble_begin();
+  digitalWrite(SD_SS, LOW);
+  SD.begin();
   
-  // Set up Serial Peripheral Interface for BLE
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setBitOrder(LSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV16);
-  SPI.begin();
+  OBDLog = SD.open("hi.txt", FILE_WRITE);
+  if (OBDLog)
+    Serial.println("YES");
+    
+  digitalWrite(SD_SS, HIGH);
+  
+  setSPIForBLE();
+  
+  ble_begin();
 }
 
 void loop() {
@@ -61,4 +68,15 @@ void loop() {
   delay(100);
 }
 
+void setSPIForSD() {
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV4);
+}
+
+void setSPIForBLE() {
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setBitOrder(LSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV16);
+}
 
