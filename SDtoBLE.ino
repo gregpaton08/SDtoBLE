@@ -44,17 +44,21 @@ void setup() {
     
   digitalWrite(SD_SS, HIGH);*/
   
+  ble_begin();
+  
   // Set up Serial Peripheral Interface for BLE
   SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(LSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV16);
   SPI.begin();
-  
-  ble_begin();
 }
 
 void loop() {
+  while (ble_available() > 0) {
+    Serial.write(ble_read());
+  }
   ble_do_events();
+  delay(100);
 }
 
 
