@@ -53,24 +53,32 @@ void loop() {
 }
 
 void saveToSD(char *buf) {
-  setSPIForSD();
-  digitalWrite(BLE_REQN, HIGH);
-  digitalWrite(SD_SS, LOW);
+  setSDActive();
   OBDLog.print(buf);
   OBDLog.flush();
-  digitalWrite(SD_SS, HIGH);
-  digitalWrite(BLE_REQN, LOW);
-  setSPIForBLE();
+  setBLEActive();
 }
 
-void setSPIForSD() {
+void setSDActive() {
+  digitalWrite(BLE_REQN, HIGH);
   SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV4);
+  digitalWrite(SD_SS, LOW);
 }
 
-void setSPIForBLE() {
+void setBLEActive() {
+  digitalWrite(SD_SS, HIGH);
   SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(LSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV16);
+  digitalWrite(BLE_REQN, LOW);
+}
+
+void listFiles() {
+  File dir = SD.open("/");
+  File file;
+  while (file = dir.openNextFile()) {
+    Serial.println(file.name());
+  }
 }
