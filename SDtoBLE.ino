@@ -34,10 +34,17 @@ void setup() {
   ble_begin();
 }
 
+const uint8_t len = 16;
+char buf[len];
+
 void loop() {
-  while (ble_available() > 0) {
-    Serial.write(ble_read());
+  uint8_t cnt = 0;
+  while (ble_available() > 0 && cnt < len) {
+    buf[cnt] = ble_read();
+    ++cnt;
   }
+  if (cnt > 0)
+    Serial.print(buf);
   ble_do_events();
   delay(100);
 }
@@ -53,4 +60,3 @@ void setSPIForBLE() {
   SPI.setBitOrder(LSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV16);
 }
-
