@@ -13,6 +13,7 @@ void setup() {
   Serial.begin(38400);
   
   //pinMode(MEGA_SS, OUTPUT);
+  pinMode(BLE_REQN, OUTPUT);
   
   // Setup SD card
   pinMode(SD_SS, OUTPUT);
@@ -43,10 +44,23 @@ void loop() {
     buf[cnt] = ble_read();
     ++cnt;
   }
-  if (cnt > 0)
+  if (cnt > 0) {
     Serial.print(buf);
+    saveToSD(buf);
+  }
   ble_do_events();
   delay(100);
+}
+
+void saveToSD(char *buf) {
+  setSPIForSD();
+  digitalWrite(BLE_REQN, HIGH);
+  digitalWrite(SD_SS, LOW);
+  OBDLog.print(buf);
+  OBDLog.flush();
+  digitalWrite(SD_SS, HIGH);
+  digitalWrite(BLE_REQN, LOW);
+  setSPIForBLE();
 }
 
 void setSPIForSD() {
