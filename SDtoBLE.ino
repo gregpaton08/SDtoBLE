@@ -25,7 +25,7 @@ void setup() {
   SD.begin();
   
   listSDFiles();
-  OBDLog = SD.open("hi.txt", FILE_WRITE);
+  OBDLog = SD.open("hello.txt", FILE_WRITE);
   if (OBDLog)
     Serial.println("YES");
     
@@ -43,11 +43,19 @@ void loop() {
   uint8_t cnt = 0;
   while (ble_available() > 0 && cnt < len) {
     buf[cnt] = ble_read();
+    if (buf[cnt] == 'l') {
+      listSDFiles();
+      setBLEActive();
+    }
+    else if (buf[cnt] == 'a') {
+      writeToBLE("hello");
+    }
     ++cnt;
   }
   if (cnt > 0) {
     Serial.print(buf);
     saveToSD(buf);
+    setBLEActive();
   }
   ble_do_events();
   delay(100);
@@ -57,7 +65,16 @@ void saveToSD(char *buf) {
   setSDActive();
   OBDLog.print(buf);
   OBDLog.flush();
+}
+
+void writeToBLE(char *buf) {
   setBLEActive();
+  uint8_t cnt = 0;
+  while (buf[cnt] != '\0') {
+    ble_write(buf[cnt]); 
+    ++cnt; 
+  }
+  ble_do_events();
 }
 
 void setSDActive() {
@@ -77,6 +94,7 @@ void setBLEActive() {
 }
 
 void listSDFiles() {
+  setSDActive();
   File dir = SD.open("/");
   File file;
   while (file = dir.openNextFile()) {
@@ -84,7 +102,9 @@ void listSDFiles() {
     // then list file 
     if (false == file.isDirectory() 
         && file.name()[0] != '.'
-        && file.name()[0] != '~')
+        && file.name()[0] != '~') {
       Serial.println(file.name());
+      setSDActive();
+    }
   }
 }
