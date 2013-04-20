@@ -67,7 +67,6 @@ void writeToBLE(char *buf) {
     ++cnt; 
   }
   ble_do_events();
-  delay(1000);
 }
 
 void setSDActive() {
@@ -87,6 +86,7 @@ void setBLEActive() {
 }
 
 void listFiles() {
+  setSDActive();
   File dir = SD.open("/");
   dir.rewindDirectory();
   while(true) {
