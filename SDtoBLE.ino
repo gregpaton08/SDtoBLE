@@ -19,9 +19,6 @@ void setup() {
   pinMode(SD_SS, OUTPUT);
   digitalWrite(SD_SS, LOW);
   SD.begin();
-  listSDFiles();
-  OBDLog = SD.open("hi.txt", FILE_WRITE);
-  listSDFiles();
   
   setBLEActive();
   
@@ -37,7 +34,7 @@ void loop() {
     buf[cnt] = ble_read();
     if (buf[cnt] == 'l' && cnt == 0) {
       Serial.println("LIST");
-      listSDFiles();
+      listFiles();
       setBLEActive();
       break;
     }
@@ -89,25 +86,18 @@ void setBLEActive() {
   digitalWrite(BLE_REQN, LOW);
 }
 
-void listSDFiles() {
-  File file;
-  setSDActive();
+void listFiles() {
   File dir = SD.open("/");
   dir.rewindDirectory();
-  //char name[13];
-  while (true) {
-    file = dir.openNextFile();
-    if (!file)
+  while(true) {
+    File entry =  dir.openNextFile();
+    if (false == entry) {
       break;
-    // if file is not a directory or hidden file
-    // then list file 
-    if (false == file.isDirectory() 
-        && file.name()[0] != '.'
-        && file.name()[0] != '~') {
-      Serial.println(file.name());
-      //memcpy(name, file.name(), 13);
-      writeToBLE(file.name());
-      //setSDActive();
+    }
+    if (false == entry.isDirectory() 
+        && entry.name()[0] != '~') {
+      writeToBLE(entry.name());
+      setSDActive();
     }
   }
 }
