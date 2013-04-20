@@ -8,6 +8,8 @@
 
 File OBDLog;
 
+const uint8_t FILE_LEN = 13;
+
 void setup() {
   // Set serial rate
   Serial.begin(38400);
@@ -46,7 +48,9 @@ void loop() {
       break;
     }
     else if (buf[cnt] == 'd' && cnt == 0) {
+      BLEdeleteFile();
     }
+    
     else
       ++cnt;
   }
@@ -104,11 +108,10 @@ void listFiles() {
 
 boolean BLEopenFile(File &file) {
   boolean ret = false;
-  const uint8_t len = 16;
-  char name[len];
+  char name[FILE_LEN];
   uint8_t cnt = 0;
-  while (ble_available() == 0);
-  while (ble_available() > 0 && cnt < len) {
+  
+  while (ble_available() > 0 && cnt < FILE_LEN) {
     name[cnt] = ble_read();
     if (name[cnt] < 46) {
       name[cnt] = '\0';
@@ -124,7 +127,9 @@ boolean BLEopenFile(File &file) {
         ret = true;
     }
   }
+  
   setBLEActive();
+  
   return ret;
 }
 
@@ -138,8 +143,6 @@ boolean BLEreadLine(File &file) {
   
   if (false == file) 
     return false;
-    
-  Serial.println("READ");
   
   while (true) {
     line[cnt] = file.read();
@@ -149,10 +152,32 @@ boolean BLEreadLine(File &file) {
     }
     ++cnt;
   }
-  Serial.print("line: ");
-  Serial.print(line);
-  Serial.println(";");
+  
   writeToBLE(line);
   
   return true;
+}
+
+boolean BLEdeleteFile() {
+  boolean ret = true;
+  char name[FILE_LEN];
+  uint8_t cnt = 0;
+  
+  while (ble_available() > 0 && cnt < FILE_LEN) {
+    name[cnt] = ble_read();
+    if (name[cnt] < 46) {
+      name[cnt] = '\0';
+      break;
+    } 
+    ++cnt;
+  }
+  
+  setSDActive();
+  if (SD.exists(name)) {
+    ret = SD.remove(name);
+  }
+  
+  setBLEActive();
+  
+  return ret;
 }
