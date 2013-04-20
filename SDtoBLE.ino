@@ -17,19 +17,11 @@ void setup() {
   
   // Setup SD card
   pinMode(SD_SS, OUTPUT);
-  digitalWrite(SD_SS, HIGH);
-  
-  //SPI.begin();
-  
   digitalWrite(SD_SS, LOW);
   SD.begin();
-  
   listSDFiles();
-  OBDLog = SD.open("hello.txt", FILE_WRITE);
-  if (OBDLog)
-    Serial.println("YES");
-    
-  digitalWrite(SD_SS, HIGH);
+  OBDLog = SD.open("hi.txt", FILE_WRITE);
+  listSDFiles();
   
   setBLEActive();
   
@@ -43,12 +35,15 @@ void loop() {
   uint8_t cnt = 0;
   while (ble_available() > 0 && cnt < len) {
     buf[cnt] = ble_read();
-    if (buf[cnt] == 'l') {
+    if (buf[cnt] == 'l' && cnt == 0) {
+      Serial.println("LIST");
       listSDFiles();
       setBLEActive();
+      break;
     }
-    else if (buf[cnt] == 'a') {
+    else if (buf[cnt] == 'a' && cnt == 0) {
       writeToBLE("hello");
+      break;
     }
     ++cnt;
   }
@@ -75,6 +70,7 @@ void writeToBLE(char *buf) {
     ++cnt; 
   }
   ble_do_events();
+  delay(1000);
 }
 
 void setSDActive() {
@@ -94,17 +90,24 @@ void setBLEActive() {
 }
 
 void listSDFiles() {
+  File file;
   setSDActive();
   File dir = SD.open("/");
-  File file;
-  while (file = dir.openNextFile()) {
+  dir.rewindDirectory();
+  //char name[13];
+  while (true) {
+    file = dir.openNextFile();
+    if (!file)
+      break;
     // if file is not a directory or hidden file
     // then list file 
     if (false == file.isDirectory() 
         && file.name()[0] != '.'
         && file.name()[0] != '~') {
       Serial.println(file.name());
-      setSDActive();
+      //memcpy(name, file.name(), 13);
+      writeToBLE(file.name());
+      //setSDActive();
     }
   }
 }
