@@ -20,15 +20,15 @@ void setup() {
   digitalWrite(SD_SS, LOW);
   SD.begin();
   
+  // Setup BLE
   setBLEActive();
-  
   ble_begin();
 }
 
-const uint8_t len = 16;
-char buf[len];
 
 void loop() {
+  const uint8_t len = 16;
+  char buf[len];
   uint8_t cnt = 0;
   while (ble_available() > 0 && cnt < len) {
     buf[cnt] = ble_read();
@@ -38,9 +38,11 @@ void loop() {
       setBLEActive();
       break;
     }
-    else if (buf[cnt] == 'a' && cnt == 0) {
-      writeToBLE("hello");
-      break;
+    else if (buf[cnt] == 'o' && cnt == 0) {
+    }
+    else if (buf[cnt] == 'r' && cnt == 0) {
+    }
+    else if (buf[cnt] == 'd' && cnt == 0) {
     }
     ++cnt;
   }
@@ -100,4 +102,16 @@ void listFiles() {
       setSDActive();
     }
   }
+}
+
+boolean openFileFromBLE(File file) {
+  const uint8_t len = 16;
+  char name[len];
+  uint8_t cnt = 0;
+  while (ble_available() > 0 && cnt < len) {
+    name[cnt] = ble_read();
+    if (name[cnt] == '\n' || name[cnt] == '\r') {
+      name[cnt] == '\0';
+      break;
+    }
 }
