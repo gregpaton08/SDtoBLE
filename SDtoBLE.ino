@@ -39,6 +39,8 @@ void loop() {
       break;
     }
     else if (buf[cnt] == 'o' && cnt == 0) {
+      openFileFromBLE(OBDLog);
+      break;
     }
     else if (buf[cnt] == 'r' && cnt == 0) {
     }
@@ -52,7 +54,7 @@ void loop() {
     setBLEActive();
   }
   ble_do_events();
-  delay(100);
+  //delay(100);
 }
 
 void saveToSD(char *buf) {
@@ -105,13 +107,29 @@ void listFiles() {
 }
 
 boolean openFileFromBLE(File file) {
+  boolean ret = false;
   const uint8_t len = 16;
   char name[len];
   uint8_t cnt = 0;
+  while (ble_available() == 0);
   while (ble_available() > 0 && cnt < len) {
     name[cnt] = ble_read();
-    if (name[cnt] == '\n' || name[cnt] == '\r') {
-      name[cnt] == '\0';
+    if (name[cnt] < 46) {
+      name[cnt] = '\0';
       break;
+    } 
+    ++cnt;
+  }
+  setSDActive();
+  if (strcmp("open", name)) {
+    if (SD.exists(name)) {
+      OBDLog = SD.open(name);
+      if (OBDLog) {
+        ret = true;
+        Serial.println("OPEN");
+      }
     }
+  }
+  setBLEActive();
+  return ret;
 }
